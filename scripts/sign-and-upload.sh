@@ -35,7 +35,10 @@ elif [[ "$PROJECT_TYPE" == "osx" ]]; then
   CODESIGN_IDENTITY=`openssl x509 -in ./certs/dist.cer -inform der -text | grep Subject: | cut -d',' -f2 | sed "s/ CN=//"`
   cp -R "$APP_FILE_PATH" "$OUTPUT_DIR/"
   codesign --deep -f -s "$CODESIGN_IDENTITY" "$OUTPUT_DIR/$APP_NAME.app"
-  zip -r -9 "$DELIVERABLE_PATH" "$OUTPUT_DIR/$APP_NAME.app"
+  pushd .
+  cd $OUTPUT_DIR
+  zip -r -9 "$DELIVERABLE_PATH" "$APP_NAME.app"
+  popd
 fi
 
 #########################
