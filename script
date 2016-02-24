@@ -49,6 +49,9 @@ class Config:
     @property
     def developer_name(self):
         if self._developer_name is None:
+            if self.project_type == "osx":
+                return None
+
             self._developer_name = raw_input(
                     'Enter developer name for signing the app: ')
         return self._developer_name
@@ -56,6 +59,9 @@ class Config:
     @property
     def profile_name(self):
         if self._profile_name is None:
+            if self.project_type == "osx":
+                return None
+
             self._profile_name = raw_input(
                     'Enter provision profile name of the release build: ')
         return self._profile_name
@@ -88,6 +94,9 @@ class Config:
     @property
     def app_extension_profile_name(self):
         if self._app_extension_profile_name is None:
+            if self.project_type == "osx":
+                return None
+
             self._app_extension_profile_name = raw_input(
                     'Enter provision profile name for app extension, (if any) ')
         return self._app_extension_profile_name
@@ -159,6 +168,9 @@ class Config:
     @property
     def mobileprovision_path(self):
         if self._mobileprovision_path is None:
+            if self.project_type == "osx":
+                return None
+
             self._mobileprovision_path = os.path.abspath(raw_input('Enter mobileprovision path: '))
             print(self._mobileprovision_path)
         return self._mobileprovision_path 
