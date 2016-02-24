@@ -324,26 +324,32 @@ def encrypt_profile_and_certs():
 def generate_travis_yml():
     template = Template(filename=prepend_src_path('_travis.yml.mako'))
 
+    print("Encrypting ENCRYPTION_SECRET...")
     encrypted_encryption_secret = check_output(
             "travis encrypt 'ENCRYPTION_SECRET=%s'" % (config.encryption_secret),
             shell=True).strip("\"\n")
 
+    print("Encrypting HOCKEY_APP_ID...")
     hockey_app_id = check_output(
             "travis encrypt 'HOCKEY_APP_ID=%s'" % (config.hockey_app_id), 
             shell=True).strip("\"\n")
 
+    print("Encrypting HOCKEY_APP_TOKEN...")
     hockey_app_token = check_output(
             "travis encrypt 'HOCKEY_APP_TOKEN=%s'" % (config.hockey_app_token), 
             shell=True).strip("\"\n")
 
+    print("Encrypting CRITTERCISM_APP_ID...")
     crittercism_app_id = check_output(
             "travis encrypt 'CRITTERCISM_APP_ID=%s'" % (config.crittercism_app_id), 
             shell=True).strip("\"\n")
 
+    print("Encrypting CRITTERCISM_KEY...")
     crittercism_key = check_output(
             "travis encrypt 'CRITTERCISM_KEY=%s'" % (config.crittercism_key), 
             shell=True).strip("\"\n")
 
+    print("Encrypting KEY_PASSWORD...")
     key_password = check_output(
             "travis encrypt 'KEY_PASSWORD=%s'" % (config.key_password), 
             shell=True).strip("\"\n")
