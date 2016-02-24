@@ -10,7 +10,7 @@ ARCHIVE_DIR="$OUTPUT_DIR/$APP_NAME.xcarchive"
 APP_FILE_PATH="$ARCHIVE_DIR/Products/Applications/$APP_NAME.app"
 
 if [[ "$PROJECT_TYPE" == "ios" ]]; then
-  DELIVERABLE_PATH=$OUTPUT_DIR/$APP_NAME.ipa
+  DELIVERABLE_PATH="$OUTPUT_DIR/$APP_NAME.ipa"
   #####################
   # Make the ipa file #
   #####################
@@ -30,15 +30,21 @@ if [[ "$PROJECT_TYPE" == "ios" ]]; then
     -sign "$DEVELOPER_NAME" \
     -embed "$PROVISIONING_PROFILE"
   fi
-elif [[ "$PROJECT_TYPE" == "ios" ]]; then
-  DELIVERABLE_PATH=$OUTPUT_DIR/$APP_NAME.app.zip
-  zip -r -9 "$DELIVERABLE_PATH" "$APP_FILE_PATH"
+elif [[ "$PROJECT_TYPE" == "osx" ]]; then
+  DELIVERABLE_PATH="$OUTPUT_DIR/$APP_NAME.app.zip"
+  CODESIGN_IDENTITY=`openssl x509 -in ./certs/dist.cer -inform der -text | grep Subject: | cut -d',' -f2 | sed "s/ CN=//"`
+  cp -R "$APP_FILE_PATH" "$OUTPUT_DIR/"
+  codesign --deep -f -s "$CODESIGN_IDENTITY" "$OUTPUT_DIR/$APP_NAME.app"
+  zip -r -9 "$DELIVERABLE_PATH" "$OUTPUT_DIR/$APP_NAME.app"
 fi
 
 #########################
 # Achieve the dSYM file #
 #########################
-zip -r -9 "$OUTPUT_DIR/$APP_NAME.app.dSYM.zip" "$ARCHIVE_DIR/dSYMs/$APP_NAME.app.dSYM"
+pushd .
+cd "$ARCHIVE_DIR/dSYMs"
+zip -r -9 "$OUTPUT_DIR/$APP_NAME.app.dSYM.zip" "$APP_NAME.app.dSYM"
+popd
 
 RELEASE_DATE=`date '+%Y-%m-%d %H:%M:%S'`
 RELEASE_NOTES="Build: $TRAVIS_BUILD_NUMBER\nUploaded: $RELEASE_DATE"
