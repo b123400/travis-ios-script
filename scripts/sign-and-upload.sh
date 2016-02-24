@@ -4,27 +4,35 @@ if [[ "$TRAVIS_PULL_REQUEST" != "false" ]]; then
   exit 0
 fi
 
-#####################
-# Make the ipa file #
-#####################
-PROVISIONING_PROFILE="$HOME/Library/MobileDevice/Provisioning Profiles/$PROFILE_NAME.mobileprovision"
-APP_EXTENSION_PROFILE="$HOME/Library/MobileDevice/Provisioning Profiles/$APP_EXTENSION_PROFILE_NAME.mobileprovision"
+
 OUTPUT_DIR="$PWD/build"
 ARCHIVE_DIR="$OUTPUT_DIR/$APP_NAME.xcarchive"
 APP_FILE_PATH="$ARCHIVE_DIR/Products/Applications/$APP_NAME.app"
 
-if [[ -n "$APP_EXTENSION_PROFILE_NAME" ]]; then
-  xcrun -log -sdk iphoneos \
-  PackageApplication "$APP_FILE_PATH" \
-  -o "$OUTPUT_DIR/$APP_NAME.ipa" \
-  -sign "$DEVELOPER_NAME" \
-  -embed "$PROVISIONING_PROFILE" "$APP_EXTENSION_PROFILE"
-else
-  xcrun -log -sdk iphoneos \
-  PackageApplication "$APP_FILE_PATH" \
-  -o "$OUTPUT_DIR/$APP_NAME.ipa" \
-  -sign "$DEVELOPER_NAME" \
-  -embed "$PROVISIONING_PROFILE"
+if [[ "$PROJECT_TYPE" == "ios" ]]; then
+  DELIVERABLE_PATH=$OUTPUT_DIR/$APP_NAME.ipa
+  #####################
+  # Make the ipa file #
+  #####################
+  PROVISIONING_PROFILE="$HOME/Library/MobileDevice/Provisioning Profiles/$PROFILE_NAME.mobileprovision"
+  APP_EXTENSION_PROFILE="$HOME/Library/MobileDevice/Provisioning Profiles/$APP_EXTENSION_PROFILE_NAME.mobileprovision"
+
+  if [[ -n "$APP_EXTENSION_PROFILE_NAME" ]]; then
+    xcrun -log -sdk iphoneos \
+    PackageApplication "$APP_FILE_PATH" \
+    -o "$DELIVERABLE_PATH" \
+    -sign "$DEVELOPER_NAME" \
+    -embed "$PROVISIONING_PROFILE" "$APP_EXTENSION_PROFILE"
+  else
+    xcrun -log -sdk iphoneos \
+    PackageApplication "$APP_FILE_PATH" \
+    -o "$DELIVERABLE_PATH" \
+    -sign "$DEVELOPER_NAME" \
+    -embed "$PROVISIONING_PROFILE"
+  fi
+elif [[ "$PROJECT_TYPE" == "ios" ]]; then
+  DELIVERABLE_PATH=$OUTPUT_DIR/$APP_NAME.app.zip
+  zip -r -9 "$DELIVERABLE_PATH" "$APP_FILE_PATH"
 fi
 
 #########################
@@ -58,7 +66,7 @@ if [[ "$TRAVIS_BRANCH" == "$APPLE_TESTFLIGHT_UPLOAD_BRANCH" ]]; then
   gem install deliver
 
   echo "At $APPLE_TESTFLIGHT_UPLOAD_BRANCH branch, upload to testflight."
-  deliver testflight "$OUTPUT_DIR/$APP_NAME.ipa" -a "$DELIVER_APP_ID"
+  deliver testflight "$DELIVERABLE_PATH" -a "$DELIVER_APP_ID"
 
   if [[ $? -ne 0 ]]; then
     echo "Error: Fail uploading to TestFlight"
@@ -97,7 +105,7 @@ if [[ "$TRAVIS_BRANCH" == "$HOCKEYAPP_UPLOAD_BRANCH" ]]; then
     -F notify="0" \
     -F notes="$RELEASE_NOTES" \
     -F notes_type="0" \
-    -F ipa="@$OUTPUT_DIR/$APP_NAME.ipa" \
+    -F ipa="@$DELIVERABLE_PATH" \
     -H "X-HockeyAppToken: $HOCKEY_APP_TOKEN"
 
   if [[ $? -ne 0 ]]; then

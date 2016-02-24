@@ -9,16 +9,6 @@ if [[ -z "$ENCRYPTION_SECRET" ]]; then
     exit 1
 fi
 
-if [[ -z "$PROFILE_NAME" ]]; then
-    echo "Error: Missing provision profile name"
-    exit 1
-fi
-
-if [[ ! -e "profile/$PROFILE_NAME.mobileprovision.enc" ]]; then
-    echo "Error: Missing encrypted provision profile"
-    exit 1
-fi
-
 if [[ ! -e "certs/dist.cer.enc" ]]; then
     echo "Error: Missing encrypted distribution cert."
     exit 1
@@ -29,17 +19,30 @@ if [[ ! -e "certs/dist.p12.enc" ]]; then
     exit 1
 fi
 
-openssl aes-256-cbc \
--k "$ENCRYPTION_SECRET" \
--in "profile/$PROFILE_NAME.mobileprovision.enc" -d -a \
--out "profile/$PROFILE_NAME.mobileprovision"
 
-if [[  -n "$APP_EXTENSION_PROFILE_NAME" ]]; then
-    echo "INFO: Provision profile for app extension found"
-    openssl aes-256-cbc \
-    -k "$ENCRYPTION_SECRET" \
-    -in "profile/$APP_EXTENSION_PROFILE_NAME.mobileprovision.enc" -d -a \
-    -out "profile/$APP_EXTENSION_PROFILE_NAME.mobileprovision"
+if [[ "$PROJECT_TYPE" == "ios" ]]; then
+  if [[ -z "$PROFILE_NAME" ]]; then
+      echo "Error: Missing provision profile name"
+      exit 1
+  fi
+
+  if [[ ! -e "profile/$PROFILE_NAME.mobileprovision.enc" ]]; then
+      echo "Error: Missing encrypted provision profile"
+      exit 1
+    fi
+
+  openssl aes-256-cbc \
+  -k "$ENCRYPTION_SECRET" \
+  -in "profile/$PROFILE_NAME.mobileprovision.enc" -d -a \
+  -out "profile/$PROFILE_NAME.mobileprovision"
+
+  if [[  -n "$APP_EXTENSION_PROFILE_NAME" ]]; then
+      echo "INFO: Provision profile for app extension found"
+      openssl aes-256-cbc \
+      -k "$ENCRYPTION_SECRET" \
+      -in "profile/$APP_EXTENSION_PROFILE_NAME.mobileprovision.enc" -d -a \
+      -out "profile/$APP_EXTENSION_PROFILE_NAME.mobileprovision"
+  fi
 fi
 
 openssl aes-256-cbc \
