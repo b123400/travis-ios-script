@@ -18,7 +18,7 @@ notifications:
   slack: # slack notification key
 env:
   global:
-  - PROJECT_TYPE= ${project_type}
+  - PROJECT_TYPE="${project_type}"
   - APP_NAME="${app_name}"
   - DEVELOPER_NAME="${developer_name}"
   - PROFILE_NAME="${profile_name}"
