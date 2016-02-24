@@ -301,8 +301,9 @@ def create_symlinks():
         prepend_project_path('certs')), prepend_project_path('certs/apple.cer'))
 
 def encrypt_profile_and_certs():
-    if not os.path.exists(prepend_project_path('profile')):
-        os.makedirs(prepend_project_path('profile'))
+    if config.project_type == "ios":
+        if not os.path.exists(prepend_project_path('profile')):
+            os.makedirs(prepend_project_path('profile'))
 
     call("openssl aes-256-cbc -k '%s' -in %s -out %s -a" % (
         config.encryption_secret, 
@@ -314,10 +315,11 @@ def encrypt_profile_and_certs():
         config.dist_p12_path, 
         prepend_project_path('certs/dist.p12.enc')), shell=True)
 
-    call("openssl aes-256-cbc -k '%s' -in %s -out %s -a" % (
-        config.encryption_secret, 
-        config.mobileprovision_path, 
-        prepend_project_path("profile/%s.mobileprovision.enc" % config.profile_name)), shell=True)
+    if config.project_type == "ios":
+        call("openssl aes-256-cbc -k '%s' -in %s -out %s -a" % (
+            config.encryption_secret, 
+            config.mobileprovision_path, 
+            prepend_project_path("profile/%s.mobileprovision.enc" % config.profile_name)), shell=True)
 
 def generate_travis_yml():
     template = Template(filename=prepend_src_path('_travis.yml.mako'))
@@ -348,6 +350,7 @@ def generate_travis_yml():
 
     f = open(prepend_project_path('.travis.yml'), 'w')
     f.write(template.render(
+        project_type=config.project_type,
         app_name=config.app_name,
         developer_name=config.developer_name,
         profile_name=config.profile_name,
@@ -395,9 +398,13 @@ def perform_build_test():
     call("./scripts/decrypt-key.sh", shell=True)
     call("./scripts/add-key.sh", shell=True)
 
-    call("xctool -workspace $WORKSPACE_NAME.xcworkspace -scheme $SCHEME_NAME -sdk $BUILD_SDK ONLY_ACTIVE_ARCH=NO", shell=True)
-    call("xctool test -workspace $WORKSPACE_NAME.xcworkspace -scheme $SCHEME_NAME -sdk $BUILD_SDK ONLY_ACTIVE_ARCH=NO", shell=True)
-    call("xctool -workspace $WORKSPACE_NAME.xcworkspace -scheme $SCHEME_NAME -sdk $RELEASE_BUILD_SDK -configuration Release ONLY_ACTIVE_ARCH=NO archive -archivePath $PWD/build/$APP_NAME.xcarchive", shell=True)
+    if config.project_type == "ios":
+        os.environ["SDK_FLAG"] = "-sdk " + os.environ["BUILD_SDK"]
+        os.environ["SDK_FLAG_FOR_ARCHIVE"] = "-sdk " + os.environ["RELEASE_BUILD_SDK"] 
+
+    call("xctool -workspace $WORKSPACE_NAME.xcworkspace -scheme $SCHEME_NAME $SDK_FLAG ONLY_ACTIVE_ARCH=NO", shell=True)
+    call("xctool test -workspace $WORKSPACE_NAME.xcworkspace -scheme $SCHEME_NAME $SDK_FLAG ONLY_ACTIVE_ARCH=NO", shell=True)
+    call("xctool -workspace $WORKSPACE_NAME.xcworkspace -scheme $SCHEME_NAME $SDK_FLAG_FOR_ARCHIVE -configuration Release ONLY_ACTIVE_ARCH=NO archive -archivePath $PWD/build/$APP_NAME.xcarchive", shell=True)
 
     call("./scripts/sign-and-upload.sh", shell=True)
     call("./scripts/remove-key.sh", shell=True)
