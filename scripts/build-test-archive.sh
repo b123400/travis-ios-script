@@ -29,12 +29,14 @@ else
         exit 1
     fi
 
-    echo "Running test..."
-    xctool test -workspace $WORKSPACE_NAME.xcworkspace \
-    -scheme $SCHEME_NAME $SDK_FLAG ONLY_ACTIVE_ARCH=NO
-    if [[ $? -ne 0 ]]; then
-        echo "Error: Test fail."
-        exit 1
+    if [[ "$NO_TEST" != "true" ]]; then
+      echo "Running test..."
+      xctool test -workspace $WORKSPACE_NAME.xcworkspace \
+      -scheme $SCHEME_NAME $SDK_FLAG ONLY_ACTIVE_ARCH=NO
+      if [[ $? -ne 0 ]]; then
+          echo "Error: Test fail."
+          exit 1
+      fi
     fi
 
     echo "Making archive..."
