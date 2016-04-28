@@ -33,7 +33,7 @@ else
       echo "Running test..."
       xcodebuild test -workspace $WORKSPACE_NAME.xcworkspace \
       -scheme $SCHEME_NAME $SDK_FLAG ONLY_ACTIVE_ARCH=NO | egrep '^(/.+:[0-9+:[0-9]+:.(error|warning):|fatal|===)' -
-      if [[ $? -ne 0 ]]; then
+      if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
           echo "Error: Test fail."
           exit 1
       fi
