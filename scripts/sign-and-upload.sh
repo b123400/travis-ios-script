@@ -115,6 +115,7 @@ if [[ "$TRAVIS_BRANCH" == "$HOCKEYAPP_UPLOAD_BRANCH" ]]; then
     -F notes="$RELEASE_NOTES" \
     -F notes_type="0" \
     -F ipa="@$DELIVERABLE_PATH" \
+    -F dsym="@$OUTPUT_DIR/$APP_NAME.app.dSYM.zip" \
     -H "X-HockeyAppToken: $HOCKEY_APP_TOKEN"
 
   if [[ $? -ne 0 ]]; then
