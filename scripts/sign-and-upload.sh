@@ -37,7 +37,7 @@ elif [[ "$PROJECT_TYPE" == "osx" ]]; then
   codesign --deep -f -s "$CODESIGN_IDENTITY" "$OUTPUT_DIR/$APP_NAME.app"
   pushd .
   cd $OUTPUT_DIR
-  zip -r -9 "$DELIVERABLE_PATH" "$APP_NAME.app"
+  zip --symlink -r -9 "$DELIVERABLE_PATH" "$APP_NAME.app"
   popd
 fi
 
